@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Jogo de Dados - Jogadores</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .fade-out { opacity: 0; transition: opacity 1s ease-out; }
+        .alert-floating { display: inline-block; margin: 10px auto; padding: 10px 20px; border-radius: 10px; font-weight: 500; text-align: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);}
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<div class="position-fixed top-0 start-0 w-100 h-100"
+     style="background-image: url('/images/fundo.png'); background-size: cover; background-position: center; z-index: -1;">
+</div>
+
+<header class="position-relative text-center py-5" style="height: 200px;">
+    <!-- Botão voltar (Home) -->
+    <div style="position: absolute; top: 20px; left: 30px; z-index: 2;">
+        <a href="/" class="btn btn-success">Home</a>
+    </div>
+
+    <!-- Imagem do dado atrás -->
+    <img src="/images/dado.png" alt="Dado"
+         style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                max-height: 200px; z-index: 0;">
+
+    <!-- Logo -->
+    <img src="/images/nome.png" alt="Jogo de Dados"
+         class="img-fluid"
+         style="max-height: 100px; position: relative; z-index: 1;">
+</header>
+
+<div class="container mt-5">
+    <div class="row g-4">
+        <!-- Cadastro -->
+        <div class="col-md-6 bg-light-subtle border border-success-subtle rounded p-3">
+            <form th:action="@{/Jogadores}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Nome</label>
+                    <input type="text" class="form-control" name="nome" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" name="email" required>
+                </div>
+                <button type="submit" class="btn btn-success">Cadastrar</button>
+            </form>
+        </div>
+
+        <!-- Jogadores cadastrados -->
+        <div class="col-md-6 bg-light-subtle border border-success-subtle rounded p-3">
+            <h4>Jogadores cadastrados</h4><span>top 5 em verde</span>
+            <form id="formJogadores">
+                <ul class="list-group border border-success-subtle" style="max-height: 206px; overflow-y: auto;">
+                    <li th:each="jogador, iterStat : ${jogadores}"
+                        th:classappend="${iterStat.index < 5} ? 'bg-success-subtle' : ''"
+                        class="list-group-item d-flex justify-content-between align-items-center">
+        <span>
+            <strong th:text="${jogador.nome}">Nome</strong> -
+            <span th:text="${jogador.email}">Email</span> |
+            Vitórias: <span th:text="${jogador.vitorias}">0</span>
+        </span>
+                        <input type="checkbox" name="ids" th:value="${jogador.id}" class="jogador-checkbox">
+                    </li>
+                </ul>
+                <div class="mt-3 d-flex gap-2">
+                    <button type="button" class="btn btn-danger" onclick="deleteJogadores()">Delete</button>
+                    <button type="button" class="btn btn-primary" id="btnJogar" disabled>Jogar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Mensagens -->
+<div class="text-center mt-3">
+    <div th:if="${erro}" id="msgErro" class="alert alert-danger alert-floating" role="alert" th:text="${erro}"></div>
+    <div th:if="${sucesso}" id="msgSucesso" class="alert alert-success alert-floating" role="alert" th:text="${sucesso}"></div>
+</div>
+
+<script>
+    setTimeout(() => {
+        ["msgErro", "msgSucesso"].forEach(id => {
+            const msg = document.getElementById(id);
+            if(msg){ msg.classList.add("fade-out"); setTimeout(() => msg.style.display="none", 1000); }
+        });
+    }, 3000);
+
+    const checkboxes = document.querySelectorAll('.jogador-checkbox');
+    const btnJogar = document.getElementById('btnJogar');
+
+    function updateBtnJogar(){
+        const checked = document.querySelectorAll('.jogador-checkbox:checked').length;
+        btnJogar.disabled = checked < 2 || checked > 11;
+    }
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateBtnJogar));
+
+    btnJogar.addEventListener('click', () => {
+        const selecionados = Array.from(document.querySelectorAll('.jogador-checkbox:checked')).map(c => c.value);
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/Jogadores/selecionar';
+        selecionados.forEach(id => {
+            const input = document.createElement('input');
+            input.type='hidden'; input.name='ids'; input.value=id;
+            form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+    });
+
+    function deleteJogadores(){
+        const selecionados = Array.from(document.querySelectorAll('.jogador-checkbox:checked')).map(c => c.value);
+        if(selecionados.length === 0) return;
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/Jogadores/delete';
+        selecionados.forEach(id => {
+            const input = document.createElement('input');
+            input.type='hidden'; input.name='ids'; input.value=id;
+            form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

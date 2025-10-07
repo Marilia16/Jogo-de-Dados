@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Jogo de Dados - JOGO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .fade-out { opacity: 0; transition: opacity 1s ease-out; }
+        .alert-floating { display: inline-block; margin: 10px auto; padding: 10px 20px; border-radius: 10px; font-weight: 500; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.15);}
+        a.disabled { pointer-events: none; opacity: 0.5; }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<!-- Fundo -->
+<div class="position-fixed top-0 start-0 w-100 h-100"
+     style="background-image: url('/images/fundo.png'); background-size: cover; background-position: center; z-index: -1;">
+</div>
+
+<header class="position-relative text-center py-5" style="height: 200px;">
+    <div style="position: absolute; top: 20px; left: 30px; z-index: 2;">
+        <a href="/jogo/voltar" class="btn btn-success">Voltar</a>
+    </div>
+
+    <img src="/images/dado.png" alt="Dado"
+         style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+                max-height: 200px; z-index: 0;">
+    <img src="/images/nome.png" alt="Jogo de Dados"
+         class="img-fluid" style="max-height: 100px; position: relative; z-index: 1;">
+</header>
+
+<div class="container mt-5">
+    <div class="row g-4">
+        <div class="col-md-6 bg-light-subtle border border-success-subtle rounded">
+            <h4 class="text-center">Jogadores selecionados</h4>
+            <ul class="list-group mb-3">
+                <li th:each="jogador : ${jogadoresEscolhidos}" class="list-group-item">
+                    <strong th:text="${jogador.nome}">Nome</strong>
+                    <span th:if="${jogador.aposta != null}"> - Aposta: <span th:text="${jogador.aposta}"></span></span>
+                </li>
+            </ul>
+
+            <h4 class="text-center">Apostas dos jogadores</h4>
+            <form id="apostasForm" th:action="@{/jogo/apostas}" method="post">
+                <div th:each="jogador : ${jogadoresEscolhidos}" class="mb-2 d-flex justify-content-between align-items-center">
+                    <span th:text="${jogador.nome}">Nome</span>
+                    <input type="number" min="2" max="12" class="form-control aposta-input"
+                           th:name="'aposta_' + ${jogador.id}" th:value="${jogador.aposta != null ? jogador.aposta : ''}" required>
+                </div>
+                <small class="text-muted">Apostas válidas: 2 a 12</small>
+                <button id="btnRegistrar" type="submit" class="btn btn-primary mt-3" disabled>Registrar Apostas</button>
+            </form>
+        </div>
+
+        <div class="col-md-6 text-center ">
+            <div class="bg-light-subtle border border-success-subtle rounded p-3">
+                <h4>Rolar Dados</h4>
+                <div>
+                    <img id="dado1Img" src="/images/face1.png" style="width:100px; height:100px;" alt="Dado 1">
+                    <img id="dado2Img" src="/images/face2.png" style="width:100px; height:100px;" alt="Dado 2">
+                </div>
+                <div class="mt-3">
+                    <h5 id="vencedor" th:text="${vencedor}"></h5>
+                    <a id="rolarBtn" th:href="@{/jogo/rolar}" class="btn btn-success mt-2">Rolar</a>
+                </div>
+            </div>
+            <div th:if="${vencedor != ''}" class="mt-4 text-center">
+                <form th:action="@{/jogo/novamente}" method="post" class="d-inline">
+                    <input type="hidden" name="acao" value="sim">
+                    <button type="submit" class="btn btn-warning">Jogar novamente com os mesmos jogadores</button>
+                </form>
+                <form th:action="@{/jogo/novamente}" method="post" class="d-inline ms-2">
+                    <input type="hidden" name="acao" value="nao">
+                    <button type="submit" class="btn btn-danger">Encerrar e limpar jogadores</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const apostaInputs = document.querySelectorAll('.aposta-input');
+    const btnRegistrar = document.getElementById('btnRegistrar');
+    const rolarBtn = document.getElementById('rolarBtn');
+    const dado1Img = document.getElementById('dado1Img');
+    const dado2Img = document.getElementById('dado2Img');
+
+    // Variáveis Thymeleaf
+    let apostasRegistradas = [[${apostasRegistradas}]];
+    let rolou = [[${rolou}]];
+    let dado1 = [[${dado1}]];
+    let dado2 = [[${dado2}]];
+
+    // Checa se todos os campos estão preenchidos corretamente
+    function checarApostas() {
+        let todosPreenchidos = true;
+        apostaInputs.forEach(input => {
+            const val = parseInt(input.value);
+            if (!val || val < 2 || val > 12) todosPreenchidos = false;
+        });
+        btnRegistrar.disabled = !todosPreenchidos || apostasRegistradas; // já registrou = bloqueia
+    }
+    apostaInputs.forEach(input => input.addEventListener('input', checarApostas));
+    checarApostas();
+
+    // Bloqueia edição dos inputs após registrar apostas
+    if (apostasRegistradas) {
+        apostaInputs.forEach(input => input.disabled = true);
+        btnRegistrar.disabled = true;
+    }
+
+    // Fade out mensagens
+    setTimeout(() => {
+        const msgErro = document.getElementById("msgErro");
+        const msgSucesso = document.getElementById("msgSucesso");
+        [msgErro, msgSucesso].forEach(msg => {
+            if (msg) {
+                msg.classList.add("fade-out");
+                setTimeout(() => msg.style.display = "none", 1000);
+            }
+        });
+    }, 3000);
+
+    // Gera faces aleatórias iniciais
+    function faceAleatoria() {
+        return Math.floor(Math.random() * 6) + 1;
+    }
+    if (dado1 === 0) dado1 = faceAleatoria();
+    if (dado2 === 0) dado2 = faceAleatoria();
+    dado1Img.src = "/images/face" + dado1 + ".png";
+    dado2Img.src = "/images/face" + dado2 + ".png";
+
+    // Atualiza o botão "Rolar"
+    function atualizarBotaoRolar() {
+        if (!apostasRegistradas || rolou) {
+            rolarBtn.classList.add('disabled');
+            rolarBtn.setAttribute('aria-disabled', 'true');
+        } else {
+            rolarBtn.classList.remove('disabled');
+            rolarBtn.removeAttribute('aria-disabled');
+        }
+    }
+    atualizarBotaoRolar();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
