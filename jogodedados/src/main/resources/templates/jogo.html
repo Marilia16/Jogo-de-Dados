@@ -13,7 +13,6 @@
 </head>
 <body class="d-flex flex-column min-vh-100">
 
-<!-- Fundo -->
 <div class="position-fixed top-0 start-0 w-100 h-100"
      style="background-image: url('/images/fundo.png'); background-size: cover; background-position: center; z-index: -1;">
 </div>
@@ -85,14 +84,12 @@
     const rolarBtn = document.getElementById('rolarBtn');
     const dado1Img = document.getElementById('dado1Img');
     const dado2Img = document.getElementById('dado2Img');
-
-    // Variáveis Thymeleaf
+    
     let apostasRegistradas = [[${apostasRegistradas}]];
     let rolou = [[${rolou}]];
     let dado1 = [[${dado1}]];
     let dado2 = [[${dado2}]];
 
-    // Checa se todos os campos estão preenchidos corretamente
     function checarApostas() {
         let todosPreenchidos = true;
         apostaInputs.forEach(input => {
@@ -104,13 +101,11 @@
     apostaInputs.forEach(input => input.addEventListener('input', checarApostas));
     checarApostas();
 
-    // Bloqueia edição dos inputs após registrar apostas
     if (apostasRegistradas) {
         apostaInputs.forEach(input => input.disabled = true);
         btnRegistrar.disabled = true;
     }
 
-    // Fade out mensagens
     setTimeout(() => {
         const msgErro = document.getElementById("msgErro");
         const msgSucesso = document.getElementById("msgSucesso");
@@ -122,7 +117,6 @@
         });
     }, 3000);
 
-    // Gera faces aleatórias iniciais
     function faceAleatoria() {
         return Math.floor(Math.random() * 6) + 1;
     }
@@ -131,7 +125,6 @@
     dado1Img.src = "/images/face" + dado1 + ".png";
     dado2Img.src = "/images/face" + dado2 + ".png";
 
-    // Atualiza o botão "Rolar"
     function atualizarBotaoRolar() {
         if (!apostasRegistradas || rolou) {
             rolarBtn.classList.add('disabled');
@@ -147,3 +140,4 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
