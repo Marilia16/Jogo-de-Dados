@@ -7,6 +7,6 @@ import java.util.Optional;
 
 public interface JogadorRepository extends JpaRepository<Jogador, Integer> {
 
-    // Método para buscar jogador pelo email
     Optional<Jogador> findByEmail(String email);
+
 }
