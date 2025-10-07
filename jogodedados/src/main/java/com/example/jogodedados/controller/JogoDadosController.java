@@ -22,7 +22,6 @@ public class JogoDadosController {
     private boolean apostasRegistradas = false;
     private boolean rolou = false;
 
-    // Método privado para listar jogadores ordenados por vitórias decrescentes
     private List<Jogador> listarOrdenados() {
         return jogadorRepository.findAll()
                 .stream()
@@ -36,9 +35,7 @@ public class JogoDadosController {
     }
 
     @GetMapping("/Jogadores")
-    public String listarJogadores(Model model,
-                                  @RequestParam(value = "erro", required = false) String erro,
-                                  @RequestParam(value = "sucesso", required = false) String sucesso) {
+    public String listarJogadores(Model model, @RequestParam(value = "erro", required = false) String erro, @RequestParam(value = "sucesso", required = false) String sucesso) {
         model.addAttribute("jogadores", listarOrdenados());
         if (erro != null) model.addAttribute("erro", erro);
         if (sucesso != null) model.addAttribute("sucesso", sucesso);
@@ -46,9 +43,7 @@ public class JogoDadosController {
     }
 
     @PostMapping("/Jogadores")
-    public String adicionarJogador(@RequestParam String nome,
-                                   @RequestParam String email,
-                                   Model model) {
+    public String adicionarJogador(@RequestParam String nome, @RequestParam String email, Model model) {
         Optional<Jogador> existente = jogadorRepository.findByEmail(email);
         if (existente.isPresent()) {
             model.addAttribute("erro", "❌ Este e-mail já está cadastrado!");
@@ -62,8 +57,7 @@ public class JogoDadosController {
     }
 
     @PostMapping("/Jogadores/delete")
-    public String deletarJogadores(@RequestParam(value = "ids", required = false) List<Integer> ids,
-                                   Model model) {
+    public String deletarJogadores(@RequestParam(value = "ids", required = false) List<Integer> ids, Model model) {
         if (ids != null) {
             ids.forEach(jogadorRepository::deleteById);
             model.addAttribute("sucesso", "🗑️ Jogador(es) removido(s) com sucesso!");
@@ -105,8 +99,7 @@ public class JogoDadosController {
 
     @PostMapping("/jogo/apostas")
     public String registrarApostas(@RequestParam Map<String, String> apostas) {
-        if (apostasRegistradas) return "redirect:/jogo"; // só permite registrar uma vez
-
+        if (apostasRegistradas) return "redirect:/jogo"; 
         for (Jogador j : jogadoresSelecionados) {
             String chave = "aposta_" + j.getId();
             if (apostas.containsKey(chave)) {
@@ -202,4 +195,5 @@ public class JogoDadosController {
         rolou = false;
         return "redirect:/Jogadores";
     }
+
 }
