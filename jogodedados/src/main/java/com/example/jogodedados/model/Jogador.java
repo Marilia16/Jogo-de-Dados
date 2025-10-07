@@ -3,7 +3,7 @@ package com.example.jogodedados.model;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "jogador") // garante que a tabela será "jogador"
+@Table(name = "jogador")
 public class Jogador {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +19,6 @@ public class Jogador {
 
     private Integer aposta;
 
-    // Getters e Setters
     public Jogador() {}
 
     public Jogador(String nome, String email) {
@@ -29,8 +28,6 @@ public class Jogador {
         this.aposta = null;
     }
 
-
-        // Getters e Setters
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
 
@@ -46,3 +43,4 @@ public class Jogador {
     public Integer getAposta() { return aposta; }
     public void setAposta(Integer aposta) { this.aposta = aposta; }
 }
+
